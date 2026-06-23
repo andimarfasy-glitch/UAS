@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/includes/csrf.php';
 session_start();
 require_once __DIR__ . '/includes/header.php';
 $errors = [];
@@ -11,14 +12,17 @@ if (empty($_SESSION['user'])) {
     $userId = $_SESSION['user']['id'];
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        if (isset($_POST['remove_item'])) {
+        $posted_csrf = $_POST['csrf_token'] ?? '';
+        if (!verify_csrf_token($posted_csrf)) {
+            $errors[] = 'Permintaan tidak valid (CSRF token salah).';
+        } else if (isset($_POST['remove_item'])) {
             $cartId = (int) ($_POST['remove_item'] ?? 0);
             $delete = $pdo->prepare('DELETE FROM carts WHERE id = ? AND user_id = ?');
             $delete->execute([$cartId, $userId]);
             $success = 'Produk berhasil dihapus dari keranjang.';
         }
 
-        if (isset($_POST['update_qty'])) {
+        if (isset($_POST['update_qty']) && empty($errors)) {
             $cartId = (int) ($_POST['cart_id'] ?? 0);
             $qty = max(1, (int) ($_POST['qty'] ?? 1));
             $stmt = $pdo->prepare('SELECT c.id, p.stok FROM carts c JOIN products p ON c.product_id = p.id WHERE c.id = ? AND c.user_id = ? LIMIT 1');
@@ -76,6 +80,7 @@ if (empty($_SESSION['user'])) {
                                 <td>Rp <?= number_format($item['harga'], 0, ',', '.') ?></td>
                                 <td>
                                     <form method="post" action="cart.php" class="inline-form">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
                                         <input type="hidden" name="cart_id" value="<?= htmlspecialchars($item['cart_id']) ?>">
                                         <input type="number" name="qty" value="<?= htmlspecialchars($item['qty']) ?>" min="1" max="<?= htmlspecialchars($item['stok']) ?>" class="input-qty">
                                         <button type="submit" name="update_qty" value="1" class="button button-small">Update</button>
@@ -84,6 +89,7 @@ if (empty($_SESSION['user'])) {
                                 <td>Rp <?= number_format($subtotal, 0, ',', '.') ?></td>
                                 <td>
                                     <form method="post" action="cart.php">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
                                         <button type="submit" name="remove_item" value="<?= htmlspecialchars($item['cart_id']) ?>" class="button button-secondary">Hapus</button>
                                     </form>
                                 </td>

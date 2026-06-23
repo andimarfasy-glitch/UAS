@@ -417,3 +417,39 @@ a {
         font-size: 2.4rem;
     }
 }
+
+/* Tab Navigation */
+.tab-nav {
+    display: flex;
+    gap: 12px;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.tab-link {
+    display: inline-flex;
+    padding: 12px 24px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-weight: 600;
+    color: var(--color-body-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-link:hover {
+    color: var(--color-ink);
+}
+
+.tab-link.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+/* Form Control */
+.form-control {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+}

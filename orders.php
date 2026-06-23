@@ -25,11 +25,26 @@ if (empty($_SESSION['user'])) {
             </div>
         <?php else: ?>
             <div class="card-grid">
-                <?php foreach ($orders as $order): ?>
+                <?php foreach ($orders as $order): 
+                    // Determine status badge color
+                    $status_color = 'gray';
+                    $status_text = ucfirst($order['status']);
+                    switch($order['status']) {
+                        case 'pending': $status_color = 'orange'; break;
+                        case 'processing': $status_color = 'blue'; break;
+                        case 'shipped': $status_color = 'purple'; break;
+                        case 'delivered': $status_color = 'green'; break;
+                    }
+                ?>
                     <article class="card">
                         <h3>Pesanan #<?= htmlspecialchars($order['id']) ?></h3>
                         <p><strong>Total:</strong> Rp <?= number_format($order['total_harga'], 0, ',', '.') ?></p>
-                        <p><strong>Status:</strong> <?= htmlspecialchars(ucfirst($order['status'])) ?></p>
+                        <p>
+                            <strong>Status:</strong> 
+                            <span style="background-color: <?= $status_color === 'orange' ? '#ff9800' : ($status_color === 'blue' ? '#2196f3' : ($status_color === 'purple' ? '#9c27b0' : '#4caf50')) ?>; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; display: inline-block;">
+                                <?= htmlspecialchars($status_text) ?>
+                            </span>
+                        </p>
                         <p><strong>Tanggal:</strong> <?= htmlspecialchars($order['created_at']) ?></p>
                         <a href="payment.php?order_id=<?= htmlspecialchars($order['id']) ?>" class="button button-secondary">Lihat Detail</a>
                     </article>

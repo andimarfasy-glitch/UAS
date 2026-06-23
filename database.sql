@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `nama` VARCHAR(100) NOT NULL,
   `email` VARCHAR(150) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
+  `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
   `role` ENUM('user','admin') NOT NULL DEFAULT 'user',
+  `avatar` VARCHAR(255) DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -54,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` INT UNSIGNED NOT NULL,
   `total_harga` DECIMAL(12,2) NOT NULL DEFAULT 0.00,
-  `status` ENUM('pending','paid','processing','completed','cancelled') NOT NULL DEFAULT 'pending',
+  `status` ENUM('pending','processing','shipped','delivered') NOT NULL DEFAULT 'pending',
   `alamat` TEXT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -89,6 +91,22 @@ CREATE TABLE IF NOT EXISTS `payments` (
   CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `admin_logs` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `admin_id` INT UNSIGNED NOT NULL,
+  `action` VARCHAR(100) NOT NULL,
+  `description` TEXT,
+  `entity_type` VARCHAR(50) DEFAULT NULL,
+  `entity_id` INT UNSIGNED DEFAULT NULL,
+  `ip_address` VARCHAR(45) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_admin_logs_admin` (`admin_id`),
+  KEY `idx_admin_logs_action` (`action`),
+  KEY `idx_admin_logs_created` (`created_at`),
+  CONSTRAINT `fk_admin_logs_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Seed sample data
 INSERT INTO `categories` (`nama_kategori`) VALUES
   ('Console'),
@@ -101,8 +119,35 @@ INSERT INTO `products` (`category_id`, `nama_produk`, `deskripsi`, `harga`, `sto
   (2, 'DualSense Wireless Controller', 'Controller PS5 ergonomis dengan haptic feedback dan adaptive triggers.', 1499000.00, 25, 'dualsense.jpg'),
   (3, 'Horizon Forbidden West', 'Game open world eksklusif PlayStation dengan visual memukau.', 899000.00, 18, 'horizon-fw.jpg');
 
-INSERT INTO `users` (`nama`, `email`, `password`, `role`) VALUES
-  ('Administrator', 'admin@example.com', '$2y$10$e0NRWmFjQmVxd2VyaG94cHlmQmV5cTZZOVh2V1Zscm1SM2t2SlIu', 'admin'),
-  ('Pengguna Demo', 'user@example.com', '$2y$10$e0NRWmFjQmVxd2VyaG94cHlmQmV5cTZZOVh2V1Zscm1SM2t2SlIu', 'user');
+INSERT INTO `users` (`nama`, `email`, `password`, `email_verified`, `role`) VALUES
+  ('Administrator', 'admin@example.com', '$2y$10$e0NRWmFjQmVxd2VyaG94cHlmQmV5cTZZOVh2V1Zscm1SM2t2SlIu', 1, 'admin'),
+  ('Pengguna Demo', 'user@example.com', '$2y$10$e0NRWmFjQmVxd2VyaG94cHlmQmV5cTZZOVh2V1Zscm1SM2t2SlIu', 1, 'user');
+
+-- Email Verification Tokens
+CREATE TABLE IF NOT EXISTS `email_verification_tokens` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `token` VARCHAR(255) NOT NULL UNIQUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` TIMESTAMP NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_token` (`token`),
+  KEY `idx_expires_at` (`expires_at`),
+  CONSTRAINT `fk_email_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Password Reset Tokens
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `token` VARCHAR(255) NOT NULL UNIQUE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` TIMESTAMP NULL,
+  `used_at` TIMESTAMP NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_token` (`token`),
+  KEY `idx_expires_at` (`expires_at`),
+  CONSTRAINT `fk_password_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Note: password hashes above correspond to a placeholder string. Replace with real hashes for production.

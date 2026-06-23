@@ -31,7 +31,12 @@ $isAdmin = !empty($_SESSION['user']) && ($_SESSION['user']['role'] ?? '') === 'a
                 <?php if ($isAdmin): ?>
                     <a class="button button-secondary" href="admin/dashboard.php">Admin</a>
                 <?php endif; ?>
-                <span class="user-badge">Halo, <?= htmlspecialchars($_SESSION['user']['nama']) ?></span>
+                <span class="user-badge">
+                    <?php if (!empty($_SESSION['user']['avatar'])): ?>
+                        <img src="assets/images/avatars/<?= htmlspecialchars($_SESSION['user']['avatar']) ?>" alt="avatar" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;margin-right:8px;object-fit:cover;">
+                    <?php endif; ?>
+                    Halo, <?= htmlspecialchars($_SESSION['user']['nama']) ?>
+                </span>
                 <a class="button button-secondary" href="logout.php">Logout</a>
             <?php else: ?>
                 <a class="button button-secondary" href="login.php">Login</a>

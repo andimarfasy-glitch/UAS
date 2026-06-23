@@ -51,7 +51,15 @@ require_once __DIR__ . '/includes/header.php';
 <section class="section">
     <div class="container">
         <div class="product-detail">
-            <div class="product-detail-media"></div>
+            <div class="product-detail-media">
+                <?php if (!empty($product['gambar'])): ?>
+                    <img src="assets/images/products/<?= htmlspecialchars($product['gambar']) ?>" alt="<?= htmlspecialchars($product['nama_produk']) ?>" style="width: 100%; max-width: 400px; height: auto; border-radius: 8px;">
+                <?php else: ?>
+                    <div style="width: 100%; max-width: 400px; height: 400px; background-color: #e0e0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 18px;">
+                        Tidak ada gambar
+                    </div>
+                <?php endif; ?>
+            </div>
             <div class="product-detail-info">
                 <h2 class="section-title"><?= htmlspecialchars($product['nama_produk']) ?></h2>
                 <p class="product-meta"><strong>Kategori:</strong> <?= htmlspecialchars($product['nama_kategori'] ?? 'Umum') ?> | <strong>Stok:</strong> <?= htmlspecialchars($product['stok']) ?></p>
